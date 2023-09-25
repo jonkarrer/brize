@@ -2,7 +2,13 @@
 name = "brize"
 version = "0.1.0"
 edition = "2021"
+authors=["Jonathan Karrer <karrerjon@gmail.com>"]
+description = "Minimalistic Rust Framework"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/jonkarrer/brize"
+readme = "README.md"
+keywords = ["framework"]
+categories = ["software"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
