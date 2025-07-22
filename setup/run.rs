@@ -1,16 +1,80 @@
+use colored::*;
 use config::Config;
 use dialoguer::Input;
 use std::collections::HashMap;
+use std::io::{self, Write};
 use std::process::Command;
 use uuid::Uuid;
 
-fn main() {
-    check_stripe_cli();
+#[derive(Debug)]
+struct SetupError(String);
+impl std::fmt::Display for SetupError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0.red())
+    }
+}
+impl std::error::Error for SetupError {}
 
-    let postgres_url = get_db_url();
-    let stripe_secret_key = get_stripe_secret_key();
-    let stripe_webhook_secret = get_stripe_webhook_secret();
-    let ui_port = get_ui_port();
+fn main() {
+    println!("{}\n", "   Stripe Setup   ".on_white().black().bold());
+    match check_stripe_cli() {
+        Ok(_) => {}
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    }
+    let stripe_secret_key = match get_stripe_secret_key() {
+        Ok(key) => {
+            println!("{}", "✅ Stripe secret key is set".green());
+            key
+        }
+        Err(e) => {
+            println!(
+                "{}",
+                "Failed to read Stripe secret key, you can fill it in later in the .env file".red()
+            );
+            return;
+        }
+    };
+    let stripe_webhook_secret = match get_stripe_webhook_secret() {
+        Ok(key) => {
+            println!("{}\n", "✅ Stripe webhook secret is set".green());
+            key
+        }
+        Err(e) => {
+            println!(
+                "{}",
+                "Failed to get Stripe webhook secret, you can fill it in later in the .env file"
+                    .red()
+            );
+            return;
+        }
+    };
+
+    println!("{}\n", "  Database Setup  ".on_white().black().bold());
+    let postgres_url = match get_db_url() {
+        Ok(url) => {
+            println!("{}", "✅ Database URL is set\n".green());
+            url
+        }
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    };
+
+    println!("{}\n", "  Application Setup  ".on_white().black().bold());
+    let ui_port = match get_ui_port() {
+        Ok(port) => {
+            println!("{}", "✅ UI port is set".green());
+            port
+        }
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    };
     let auth_secret = generate_auth_secret();
 
     let env_file = format!(
@@ -23,106 +87,103 @@ AUTH_SECRET={}
         postgres_url, stripe_secret_key, stripe_webhook_secret, ui_port, auth_secret
     );
     let _ = std::fs::write(".env", env_file);
+    println!("{}\n", "✅ Environment variables are set in .env".green());
 
-    println!("Done! Your .env file has been created!");
+    println!(
+        "{}",
+        "🎉 Setup Is Complete! You are ready to migrate and seed your database."
+    );
 }
 
-fn check_stripe_cli() {
+fn check_stripe_cli() -> Result<(), SetupError> {
     // Check stripe cli install
-    println!("1.Checking stripe cli install");
-    if Command::new("stripe").arg("--version").output().is_err() {
-        println!("Stripe cli is not installed, please install stripe cli and try again");
-        return;
-    }
-    println!("Stripe cli is installed");
+    Command::new("stripe")
+        .arg("--version")
+        .output()
+        .map_err(|_| {
+            SetupError("Stripe CLI is not installed, please install and try again".to_string())
+        })?;
+    println!("{}", "✅ Stripe CLI is installed".green());
 
     // Check stripe login
-    println!("2.Checking stripe login");
-    if Command::new("stripe")
+    Command::new("stripe")
         .arg("config")
         .arg("--list")
         .output()
-        .is_err()
-    {
-        println!("Not logged into Stripe, please login and try again");
-        return;
-    }
-    println!("Logged into Stripe");
+        .map_err(|_| {
+            SetupError("Not logged into Stripe CLI, please log in and try again".to_string())
+        })?;
+    println!("{}", "✅ Authenticated with Stripe CLI".green());
+    Ok(())
 }
 
-fn get_db_url() -> String {
-    println!("3.Select database connection type");
+fn get_db_url() -> Result<String, SetupError> {
     let type_of_conn: String = Input::new()
         .with_prompt("Do you want to use a local Postgres instance with Docker (L) or a remote Postgres instance (R)? (L/R)")
         .interact_text()
-        .expect("Failed to read input");
+        .map_err(|_| SetupError("Failed to read input".to_string()))?;
+
+    clear_line();
 
     // Check if local
     if type_of_conn.to_lowercase() == "l" {
-        println!("4.Starting local Postgres instance");
-        return start_local_db().expect("Failed to start local Postgres instance");
+        let url = start_local_db()?;
+        return Ok(url);
     }
 
     // Get remote url
     let remote_url: String = Input::new()
         .with_prompt("Please enter your remote Postgres instance url")
         .interact_text()
-        .expect("Failed to read input");
+        .map_err(|_| SetupError("Failed to read input".to_string()))?;
 
     // Check if valid remote url
     if !remote_url.contains("postgres://") {
         println!("Missing postgres://, please try again");
         return get_db_url();
     }
-    println!("4.Using remote Postgres instance");
-    return remote_url;
+    return Ok(remote_url);
 }
 
-fn start_local_db() -> Result<String, std::io::Error> {
-    // Get Configs
+fn start_local_db() -> Result<String, SetupError> {
     let configs: HashMap<String, String> = Config::builder()
         .add_source(config::File::with_name("./setup/config.toml"))
         .build()
-        .unwrap()
+        .map_err(|_| SetupError("Failed to get configs from config.toml".to_string()))?
         .try_deserialize()
-        .expect("Failed to deserialize configs");
+        .map_err(|_| SetupError("Failed to get configs from config.toml".to_string()))?;
 
-    let postgres_user = configs.get("POSTGRES_USER").unwrap();
-    let postgres_password = configs.get("POSTGRES_PASSWORD").unwrap();
-    let postgres_db = configs.get("POSTGRES_DB").unwrap();
-    let postgres_port = configs.get("POSTGRES_PORT").unwrap();
+    let postgres_user = configs
+        .get("POSTGRES_USER")
+        .expect("Failed to get POSTGRES_USER");
+    let postgres_password = configs
+        .get("POSTGRES_PASSWORD")
+        .expect("Failed to get POSTGRES_PASSWORD");
+    let postgres_db = configs
+        .get("POSTGRES_DB")
+        .expect("Failed to get POSTGRES_DB");
+    let postgres_port = configs
+        .get("POSTGRES_PORT")
+        .expect("Failed to get POSTGRES_PORT");
 
     // Check docker install
-    println!("Checking docker install");
-    if Command::new("docker").arg("--version").output().is_err() {
-        println!("Docker is not installed, please install docker and try again");
-        println!("See https://docs.docker.com/get-docker/");
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "Docker is not installed",
-        ));
-    };
-    println!("Docker is installed");
+    Command::new("docker")
+        .arg("--version")
+        .output()
+        .map_err(|_| {
+            SetupError("Docker is not installed, please install and try again".to_string())
+        })?;
+    println!("{}", "✅ Docker is installed".green());
 
     // Check docker-compose install
-    println!("Checking docker-compose install");
-    if Command::new("docker")
+    Command::new("docker")
         .arg("compose")
         .arg("version")
         .output()
-        .is_err()
-    {
-        println!("Docker-compose is not installed, please install docker-compose and try again");
-        println!("See https://docs.docker.com/compose/install/");
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "Docker-compose is not installed",
-        ));
-    };
-    println!("Docker-compose is installed");
-
-    // Write docker-compose.yml for postgres
-    println!("Writing docker-compose.yml for postgres");
+        .map_err(|_| {
+            SetupError("Docker-compose is not installed, please install and try again".to_string())
+        })?;
+    println!("{}", "✅ Docker compose is installed".green());
 
     let yaml_file = format!(
         r#"version: '3'
@@ -143,71 +204,61 @@ volumes:
 "#,
         postgres_user, postgres_password, postgres_db, postgres_port,
     );
-    let _ = std::fs::write("docker-compose.yml", yaml_file);
-    println!("Wrote docker-compose.yml for postgres");
+    std::fs::write("docker-compose.yml", yaml_file);
+    println!("{}", "✅ Wrote docker-compose.yml".green());
 
     // Run docker-compose.yml
-    println!("Running docker-compose.yml for postgres");
-    if Command::new("docker")
+    Command::new("docker")
         .arg("compose")
         .arg("-f")
         .arg("docker-compose.yml")
         .arg("up")
         .arg("-d")
         .output()
-        .is_err()
-    {
-        println!("Failed to run docker-compose.yml for postgres");
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "Failed to run docker-compose.yml for postgres",
-        ));
-    };
-    println!("Ran docker-compose.yml for postgres");
-
+        .map_err(|_| SetupError("Failed to start local Postgres instance".to_string()))?;
+    println!("{}", "✅ Started local Postgres container".green());
     Ok(format!(
         "postgres://{}:{}@localhost:{}/postgres",
         postgres_user, postgres_password, postgres_port
     ))
 }
 
-fn get_stripe_secret_key() -> String {
-    println!("5.Getting Stripe secret key");
-    let stripe_secret_key: String = Input::new()
+fn get_stripe_secret_key() -> Result<String, SetupError> {
+    let input: String = Input::new()
         .with_prompt("Please enter your Stripe secret key")
         .interact_text()
-        .expect("Failed to read input");
-    return stripe_secret_key;
+        .map_err(|_| SetupError("Failed to read input".to_string()))?;
+    clear_line();
+    Ok(input)
 }
 
-fn get_stripe_webhook_secret() -> String {
-    println!("6.Getting Stripe webhook secret");
+fn get_stripe_webhook_secret() -> Result<String, SetupError> {
     let secret = Command::new("stripe")
         .arg("listen")
         .arg("--print-secret")
-        .output();
-    if secret.is_err() {
-        println!("Failed to get Stripe webhook secret, you can fill it in later in the .env file");
-        return String::new();
-    }
-    let secret = String::from_utf8(secret.unwrap().stdout)
-        .expect("Failed to get Stripe webhook secret, you can fill it in later in the .env file");
-    println!("Got Stripe webhook secret");
-    return secret;
+        .output()
+        .map_err(|_| SetupError("Failed to get Stripe webhook secret".to_string()))?;
+    String::from_utf8(secret.stdout)
+        .map_err(|_| SetupError("Failed to get Stripe webhook secret".to_string()))
 }
 
-fn get_ui_port() -> String {
-    println!("7.Getting UI port");
-    let ui_port: String = Input::new()
+fn get_ui_port() -> Result<String, SetupError> {
+    let input: String = Input::new()
         .with_prompt("Please enter the port you want the UI to run on, e.g. 3000")
         .interact_text()
-        .expect("Failed to read input");
-    return ui_port;
+        .map_err(|_| SetupError("Failed to read input".to_string()))?;
+    clear_line();
+    Ok(input)
 }
 
 fn generate_auth_secret() -> String {
-    println!("8.Generating auth secret");
     let auth_secret = uuid::Uuid::new_v4().to_string();
-    println!("Generated auth secret");
+    println!("{}", "✅ Generated auth secret".green());
     return auth_secret;
+}
+
+fn clear_line() {
+    print!("\x1B[1A"); // Move cursor up one line
+    print!("\r\x1B[2K"); // Clear the entire line
+    std::io::stdout().flush().unwrap();
 }
