@@ -122,10 +122,9 @@ fn get_db_url() -> Result<String, SetupError> {
         .with_prompt("Do you want to use a local Postgres instance with Docker (L) or a remote Postgres instance (R)? (L/R)")
         .interact_text()
         .map_err(|_| SetupError("Failed to read input".to_string()))?;
-
     clear_line();
 
-    // Check if local
+    // Check if local argument
     if type_of_conn.to_lowercase() == "l" {
         let url = start_local_db()?;
         return Ok(url);
@@ -175,7 +174,7 @@ fn start_local_db() -> Result<String, SetupError> {
         })?;
     println!("{}", "✅ Docker is installed".green());
 
-    // Check docker-compose install
+    // Check docker compose install
     Command::new("docker")
         .arg("compose")
         .arg("version")
@@ -185,6 +184,7 @@ fn start_local_db() -> Result<String, SetupError> {
         })?;
     println!("{}", "✅ Docker compose is installed".green());
 
+    // Write docker-compose.yml
     let yaml_file = format!(
         r#"version: '3'
 services:
