@@ -1,14 +1,28 @@
 [package]
 name = "brize"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 authors=["Jonathan Karrer <karrerjon@gmail.com>"]
 description = "Minimalistic Rust Framework"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/jonkarrer/brize"
 readme = "README.md"
-keywords = ["framework"]
+keywords = ["framework", "starter", "template", "boilerplate"]
 categories = ["software"]
 
 
 [dependencies]
+config = { version = "0.15.13", features = ["yaml"], optional = true}
+dialoguer ={version = "0.11.0", optional = true} 
+uuid = { version = "1.17.0", features = ["v4"], optional = true }
+
+[dev-dependencies]
+
+[features]
+setup-deps = ["config", "dialoguer", "uuid"]
+uuid = ["dep:uuid"]
+
+[[bin]]
+name = "setup"
+path = "./setup/run.rs"
+required-features = ["setup-deps"]
