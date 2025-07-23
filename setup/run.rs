@@ -190,6 +190,7 @@ fn start_local_db() -> Result<String, SetupError> {
 services:
   postgres:
     image: postgres:17.5-alpine3.22
+    container_name: brize_postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: {} 
