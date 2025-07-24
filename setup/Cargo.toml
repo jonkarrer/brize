@@ -1,0 +1,17 @@
+[package]
+name = "setup"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85.0"
+publish = false
+
+
+[dependencies]
+config = { workspace = true}
+sea-orm = { workspace = true}
+tokio = {workspace = true}
+dialoguer ={version = "0.11.0"} 
+colored ={ version = "3.0.0"}
+uuid = { version = "1.17.0", features = ["v4"] }
+
+[dev-dependencies]
