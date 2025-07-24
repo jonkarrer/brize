@@ -1,13 +1,14 @@
-version: "3"
+version: '3'
 services:
   postgres:
     image: postgres:17.5-alpine3.22
-    restart: unless-stopped
     container_name: brize_postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: default-password
+      POSTGRES_USER: postgres 
+      POSTGRES_PASSWORD: default-password 
       POSTGRES_DB: postgres
+      DEFAULT_SCHEMA: public
     ports:
       - 5432:5432
     volumes:

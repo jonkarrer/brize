@@ -1,9 +1,13 @@
+pub mod db;
+pub mod tools;
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_setup() {
+    #[tokio::test]
+    async fn test_setup() {
+        db::db().await;
         assert!(false)
     }
 }
