@@ -4,3 +4,4 @@
 .env
 *.evn.*
 flake.lock
+flake.nix
