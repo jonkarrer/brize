@@ -4,7 +4,11 @@ members = [".", "setup"]
 [workspace.dependencies]
 tokio = {version="1.46.1", features = ["macros", "rt-multi-thread"]}
 config = { version = "0.15.13", features = ["yaml"]}
-sea-orm = { version = "1.1.14", features = ["sqlx-postgres", "runtime-tokio-rustls", "with-time", "with-json", "with-uuid"] }
+diesel = { version = "2.2.0", features = ["postgres"] }
+rand_core ={ version = "0.9.3", features=["os_rng"] }
+bcrypt = "0.17.0"
+rand = "0.9.2"
+argon2 = "0.5.3"
 
 [package]
 name = "brize"
@@ -22,6 +26,11 @@ categories = ["software"]
 [dependencies]
 tokio = {workspace = true}
 config = {workspace = true}
-sea-orm = {workspace = true}
+
+#Password Hashing
+rand = {workspace = true}
+rand_core = {workspace=true}
+argon2= {workspace = true}
+bcrypt = {workspace=true}
 
 [dev-dependencies]

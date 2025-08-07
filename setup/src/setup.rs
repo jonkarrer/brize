@@ -21,7 +21,7 @@ pub fn run() -> Result<String, SetupError> {
     let auth_secret = generate_auth_secret();
 
     let env_file = format!(
-        r#"POSTGRES_URL={}
+        r#"DATABASE_URL={}
 STRIPE_SECRET_KEY={}
 STRIPE_WEBHOOK_SECRET={}
 BASE_URL=http://localhost:{}
@@ -105,9 +105,6 @@ fn start_local_db() -> Result<String, SetupError> {
     let postgres_port = configs
         .get("POSTGRES_PORT")
         .expect("Failed to get POSTGRES_PORT");
-    let default_schema = configs
-        .get("DEFAULT_SCHEMA")
-        .expect("Failed to get DEFAULT_SCHEMA");
 
     // Check docker install
     Command::new("docker")
@@ -140,7 +137,6 @@ services:
       POSTGRES_USER: {} 
       POSTGRES_PASSWORD: {} 
       POSTGRES_DB: {}
-      DEFAULT_SCHEMA: {}
     ports:
       - {}:5432
     volumes:
@@ -148,7 +144,7 @@ services:
 volumes:
   postgres_data:
 "#,
-        postgres_user, postgres_password, postgres_db, default_schema, postgres_port,
+        postgres_user, postgres_password, postgres_db, postgres_port,
     );
     std::fs::write("docker-compose.yml", yaml_file)
         .map_err(|_| SetupError("Failed to write docker-compose.yml".to_string()))?;
@@ -165,8 +161,8 @@ volumes:
         .map_err(|_| SetupError("Failed to start local Postgres instance".to_string()))?;
     println!("{}", "✅ Started local Postgres container \n".green());
     Ok(format!(
-        "postgres://{}:{}@localhost:{}/postgres?currentSchema={}",
-        postgres_user, postgres_password, postgres_port, default_schema
+        "postgres://{}:{}@localhost:{}/postgres",
+        postgres_user, postgres_password, postgres_port
     ))
 }
 

@@ -3,3 +3,4 @@
 *.env
 .env
 *.evn.*
+flake.lock

@@ -1,4 +1,6 @@
 mod migrate;
+mod schema;
+mod seed;
 mod setup;
 
 use colored::*;
@@ -12,8 +14,7 @@ impl std::fmt::Display for SetupError {
 }
 impl std::error::Error for SetupError {}
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let postgres_url = match setup::run() {
         Ok(url) => url,
         Err(e) => {
@@ -23,7 +24,7 @@ async fn main() {
     };
     println!("🎉 Setup Is Complete! Creating Users and Teams schema...\n");
 
-    match migrate::run(&postgres_url).await {
+    match migrate::run(&postgres_url) {
         Ok(_) => (),
         Err(e) => {
             println!("{}", e.to_string().red());
@@ -31,5 +32,13 @@ async fn main() {
         }
     };
 
-    println!("🎉 Users and Teams created! You are ready to dev...");
+    println!("🎉 Users and Teams created! Seeding database...");
+
+    match seed::run(&postgres_url) {
+        Ok(_) => (),
+        Err(e) => {
+            println!("{}", e.to_string().red());
+            std::process::exit(1);
+        }
+    }
 }

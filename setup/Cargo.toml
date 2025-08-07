@@ -7,8 +7,12 @@ publish = false
 
 [dependencies]
 config = { workspace = true}
-sea-orm = { workspace = true}
+diesel = {workspace = true}
 tokio = {workspace = true, features = ["macros", "rt-multi-thread"]}
+argon2 = {workspace = true}
+rand = {workspace = true}
+rand_core = {workspace = true}
+bcrypt = {workspace = true}
 dialoguer ={version = "0.11.0"} 
 colored ={ version = "3.0.0"}
 uuid = { version = "1.17.0", features = ["v4"] }

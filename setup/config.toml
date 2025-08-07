@@ -1,6 +1,7 @@
 POSTGRES_USER="postgres"
-POSTGRES_PASSWORD="default-password"
+POSTGRES_PASSWORD="password"
 POSTGRES_DB="postgres"
 POSTGRES_PORT="5432"
 CONTAINER_NAME="postgres"
 DEFAULT_SCHEMA="public"
+DATABASE_URL="postgres://postgres:default-password@localhost:5432/postgres"
