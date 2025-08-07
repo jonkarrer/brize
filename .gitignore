@@ -5,3 +5,4 @@
 *.evn.*
 flake.lock
 flake.nix
+justfile
