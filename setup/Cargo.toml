@@ -5,6 +5,7 @@ edition = "2024"
 rust-version = "1.85.0"
 publish = false
 
+<<<<<<< HEAD
 
 [dependencies]
 config = { workspace = true}
@@ -15,3 +16,12 @@ colored ={ version = "3.0.0"}
 uuid = { version = "1.17.0", features = ["v4"] }
 
 [dev-dependencies]
+=======
+[dependencies]
+config = { workspace = true }
+diesel = { workspace = true }
+bcrypt = { workspace = true }
+colored = "3.0.0"
+dialoguer = "0.11.0" 
+uuid = { version = "1.17.0", features = ["v4"] }
+>>>>>>> feat/setup

@@ -2,9 +2,16 @@
 members = [".", "setup"]
 
 [workspace.dependencies]
+<<<<<<< HEAD
 tokio = {version="1.46.1", features = ["macros"]}
 config = { version = "0.15.13", features = ["yaml"]}
 sea-orm = { version = "1.1.14", features = ["sqlx-postgres", "runtime-tokio-rustls", "with-time", "with-json", "with-uuid"] }
+=======
+tokio = { version="1.46.1", features = ["macros", "rt-multi-thread"] }
+config = { version = "0.15.13", features = ["yaml"] }
+diesel = { version = "2.2.0", features = ["postgres"] }
+bcrypt = "0.17.0"
+>>>>>>> feat/setup
 
 [package]
 name = "brize"
@@ -20,8 +27,16 @@ keywords = ["framework", "starter", "template", "boilerplate"]
 categories = ["software"]
 
 [dependencies]
+<<<<<<< HEAD
 tokio = {workspace = true}
 config = {workspace = true}
 sea-orm = {workspace = true}
 
 [dev-dependencies]
+=======
+tokio = { workspace = true }
+config = { workspace = true }
+bcrypt = { workspace=true }
+
+[dev-dependencies]
+>>>>>>> feat/setup

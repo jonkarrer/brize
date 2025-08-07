@@ -6,7 +6,11 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres 
+<<<<<<< HEAD
       POSTGRES_PASSWORD: default-password 
+=======
+      POSTGRES_PASSWORD: password 
+>>>>>>> feat/setup
       POSTGRES_DB: postgres
       DEFAULT_SCHEMA: public
     ports:
