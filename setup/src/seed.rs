@@ -1,6 +1,7 @@
 use crate::SetupError;
 use crate::schema::{team_members, teams, users};
 use bcrypt::{DEFAULT_COST, hash, verify};
+use colored::*;
 use diesel::prelude::*;
 
 #[derive(Queryable, Selectable)]
@@ -45,6 +46,8 @@ struct NewTeamMember {
 }
 
 pub fn run(db_url: &str) -> Result<(), SetupError> {
+    println!("{}\n", "   Seeding Database   ".on_white().black().bold());
+
     let mut conn =
         PgConnection::establish(db_url).map_err(|_| SetupError("DB Conn failed".to_string()))?;
 
@@ -81,6 +84,8 @@ pub fn run(db_url: &str) -> Result<(), SetupError> {
         .values(&new_member)
         .execute(&mut conn)
         .expect("Failed to inster team member");
+
+    println!("{}", "✅ Seeding completed \n".green());
 
     Ok(())
 }

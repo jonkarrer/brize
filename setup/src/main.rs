@@ -22,7 +22,6 @@ fn main() {
             std::process::exit(1);
         }
     };
-    println!("🎉 Setup Is Complete! Creating Users and Teams schema...\n");
 
     match migrate::run(&postgres_url) {
         Ok(_) => (),
@@ -32,8 +31,6 @@ fn main() {
         }
     };
 
-    println!("🎉 Users and Teams created! Seeding database...");
-
     match seed::run(&postgres_url) {
         Ok(_) => (),
         Err(e) => {
@@ -41,4 +38,6 @@ fn main() {
             std::process::exit(1);
         }
     }
+
+    println!("{}\n", "❯❯❯ You are ready to dev!".blue().bold());
 }

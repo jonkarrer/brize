@@ -1,7 +1,6 @@
+use crate::SetupError;
 use colored::*;
 use std::process::Command;
-
-use crate::SetupError;
 
 pub fn run(database_url: &str) -> Result<(), SetupError> {
     println!("{}\n", "   Running Migrations   ".on_white().black().bold());

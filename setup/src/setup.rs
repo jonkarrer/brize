@@ -91,7 +91,7 @@ fn start_local_db() -> Result<String, SetupError> {
         .build()
         .map_err(|_| SetupError("Failed to get configs from config.toml".to_string()))?
         .try_deserialize()
-        .map_err(|_| SetupError("Failed to get configs from config.toml".to_string()))?;
+        .map_err(|_| SetupError("Failed to deserialize config.toml".to_string()))?;
 
     let postgres_user = configs
         .get("POSTGRES_USER")

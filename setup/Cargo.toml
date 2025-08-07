@@ -6,15 +6,9 @@ rust-version = "1.85.0"
 publish = false
 
 [dependencies]
-config = { workspace = true}
-diesel = {workspace = true}
-tokio = {workspace = true, features = ["macros", "rt-multi-thread"]}
-argon2 = {workspace = true}
-rand = {workspace = true}
-rand_core = {workspace = true}
-bcrypt = {workspace = true}
-dialoguer ={version = "0.11.0"} 
-colored ={ version = "3.0.0"}
+config = { workspace = true }
+diesel = { workspace = true }
+bcrypt = { workspace = true }
+colored = "3.0.0"
+dialoguer = "0.11.0" 
 uuid = { version = "1.17.0", features = ["v4"] }
-
-[dev-dependencies]

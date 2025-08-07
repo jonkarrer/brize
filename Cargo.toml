@@ -2,13 +2,10 @@
 members = [".", "setup"]
 
 [workspace.dependencies]
-tokio = {version="1.46.1", features = ["macros", "rt-multi-thread"]}
-config = { version = "0.15.13", features = ["yaml"]}
+tokio = { version="1.46.1", features = ["macros", "rt-multi-thread"] }
+config = { version = "0.15.13", features = ["yaml"] }
 diesel = { version = "2.2.0", features = ["postgres"] }
-rand_core ={ version = "0.9.3", features=["os_rng"] }
 bcrypt = "0.17.0"
-rand = "0.9.2"
-argon2 = "0.5.3"
 
 [package]
 name = "brize"
@@ -24,13 +21,8 @@ keywords = ["framework", "starter", "template", "boilerplate"]
 categories = ["software"]
 
 [dependencies]
-tokio = {workspace = true}
-config = {workspace = true}
-
-#Password Hashing
-rand = {workspace = true}
-rand_core = {workspace=true}
-argon2= {workspace = true}
-bcrypt = {workspace=true}
+tokio = { workspace = true }
+config = { workspace = true }
+bcrypt = { workspace=true }
 
 [dev-dependencies]
